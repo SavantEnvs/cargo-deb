@@ -1,0 +1,8 @@
+project: savantenvs/cargo-deb
+target: fuzz-process-deep
+testsuite:
+  - https://$MAYHEM_DOMAIN/$MAYHEM_PROJECT/$MAYHEM_TARGET/testsuite.tar
+  - file://mayhem/fuzz-process-deep/testsuite
+cmds:
+  - cmd: /mayhem/fuzz_process_deep
+    libfuzzer: true
