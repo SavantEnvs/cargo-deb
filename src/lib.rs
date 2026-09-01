@@ -363,7 +363,7 @@ fn debian_triple_from_rust_triple(rust_target_triple: &str) -> String {
         (risc, _) if risc.starts_with("riscv64") => ("riscv64", "gnu"),
         (risc, _) if risc.starts_with("riscv32") => ("riscv32", "gnu"),
         (arch, "muslspe") => (arch, "gnuspe"),
-        (arch, "musl" | "uclibc") => (arch, "gnu"),
+        (arch, "musl" | "uclibc" | "gnuelfv2") => (arch, "gnu"),
         (arch, abi) => (arch, abi),
     };
     format!("{darch}-linux-{dabi}")
