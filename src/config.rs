@@ -992,9 +992,8 @@ impl PackageConfig {
                 listener.warning("license field is missing in Cargo.toml".into());
             }
         }
-        let deb_version = overrides.deb_version.as_deref().map(Cow::Borrowed)
-            .unwrap_or_else(|| manifest_version_string(cargo_package, overrides.deb_revision.as_deref().or(deb.revision.as_deref())))
-            .into_owned();
+        let deb_version = overrides.deb_version.clone()
+            .unwrap_or_else(|| manifest_version_string(cargo_package, overrides.deb_revision.as_deref().or(deb.revision.as_deref())));
         if let Err(why) = check_debian_version(&deb_version) {
             return Err(CargoDebError::InvalidVersion(why, deb_version));
         }

@@ -7,7 +7,6 @@ use cargo_toml::{DebugSetting, StripSetting};
 use log::debug;
 use serde::de::DeserializeOwned;
 use serde::Deserialize;
-use std::borrow::Cow;
 use std::collections::{BTreeMap, HashMap};
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -90,8 +89,8 @@ pub(crate) fn debug_flags(manifest_profile: Option<&cargo_toml::Profile>, profil
 }
 
 /// Debian-compatible version of the semver version
-pub(crate) fn manifest_version_string<'a>(package: &'a cargo_toml::Package<CargoPackageMetadata>, revision: Option<&str>) -> Cow<'a, str> {
-    let mut version = Cow::Borrowed(package.version());
+pub(crate) fn manifest_version_string(package: &cargo_toml::Package<CargoPackageMetadata>, revision: Option<&str>) -> String {
+    let mut version = package.version().to_string();
 
     // Make debian's version ordering (newer versions) more compatible with semver's.
     // Keep "semver-1" and "semver-xxx" as-is (assuming these are irrelevant, or debian revision already),
@@ -99,15 +98,14 @@ pub(crate) fn manifest_version_string<'a>(package: &'a cargo_toml::Package<Cargo
     if let Some((semver_main, semver_pre)) = version.split_once('-') {
         let pre_ascii = semver_pre.as_bytes();
         if pre_ascii.iter().any(|c| !c.is_ascii_digit()) && pre_ascii.iter().any(u8::is_ascii_digit) {
-            version = Cow::Owned(format!("{semver_main}~{semver_pre}"));
+            version = format!("{semver_main}~{semver_pre}");
         }
     }
 
     let revision = revision.unwrap_or("1");
     if !revision.is_empty() && revision != "0" {
-        let v = version.to_mut();
-        v.push('-');
-        v.push_str(revision);
+        version.push('-');
+        version.push_str(revision);
     }
     version
 }
@@ -734,15 +732,15 @@ mod tests {
 
 #[test]
 fn deb_ver() {
-    let mut c = cargo_toml::Package::new("test", "1.2.3-1");
+    let mut c = cargo_toml::Package::new("test", "1.2.3-1".parse().unwrap());
     assert_eq!("1.2.3-1-1", manifest_version_string(&c, None));
     assert_eq!("1.2.3-1-2", manifest_version_string(&c, Some("2")));
     assert_eq!("1.2.3-1", manifest_version_string(&c, Some("")));
-    c.version = cargo_toml::Inheritable::Set("1.2.0-beta.3".into());
+    c.version = cargo_toml::Inheritable::Set("1.2.0-beta.3".parse().unwrap());
     assert_eq!("1.2.0~beta.3-1", manifest_version_string(&c, None));
     assert_eq!("1.2.0~beta.3-4", manifest_version_string(&c, Some("4")));
     assert_eq!("1.2.0~beta.3", manifest_version_string(&c, Some("")));
-    c.version = cargo_toml::Inheritable::Set("1.2.0-new".into());
+    c.version = cargo_toml::Inheritable::Set("1.2.0-new".parse().unwrap());
     assert_eq!("1.2.0-new-1", manifest_version_string(&c, None));
     assert_eq!("1.2.0-new-11", manifest_version_string(&c, Some("11")));
     assert_eq!("1.2.0-new", manifest_version_string(&c, Some("0")));
