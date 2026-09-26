@@ -1,0 +1,51 @@
+# Additive cargo-fuzz crate for the Mayhem two-branch model.
+#
+# This backport freezes the ORIGINAL mayhemheroes/cargo-deb fuzz harness (fuzz/fuzz_targets/
+# fuzz_process_{deep,rand}.rs at fork commit 243e2646e0), ported from honggfuzz's `fuzz!` macro to
+# libfuzzer-sys's `fuzz_target!` (both hand the closure the identical raw `&[u8]` — no framing
+# change), so replayed crashers from the original mayhemheroes runs exercise the exact same logic:
+# split the fuzzed bytes into a fake Cargo.toml + src/main.rs, then run cargo-deb's real Config::
+# from_manifest -> cargo_build -> compress_assets -> strip_binaries -> DebArchive pipeline over it.
+# The upstream commit this branch is rooted at (d773eb3, kornelski/cargo-deb) is FR's own direct
+# parent, so this crate's `cargo_deb` API dependency matches byte-for-byte — no adaptation needed
+# beyond the fuzzing-engine macro.
+[package]
+name = "cargo-deb-mayhem-fuzz"
+version = "0.0.0"
+authors = ["Mayhem integration"]
+publish = false
+edition = "2021"
+
+[package.metadata]
+cargo-fuzz = true
+
+[workspace]
+members = ["."]
+
+[dependencies]
+libfuzzer-sys = "0.4"
+rand = "0.8.5"
+rand_pcg = "0.3.1"
+tempfile = "3.2.0"
+log = "0.4.17"
+rayon = "1.6.1"
+# The fuzzed crate (cargo-deb's library, crate name `cargo_deb`) is the repo root, two levels up.
+# The package is named `cargo-deb` (hyphen); its library is `cargo_deb` (underscore), so we alias it.
+cargo_deb = { package = "cargo-deb", path = "../..", default-features = true }
+
+# Used ONLY by the oracle (tests/oracle.rs) to verify the in-process xz compressor round-trips;
+# never linked into the libFuzzer binaries.
+[dev-dependencies]
+xz2 = "0.1"
+
+[[bin]]
+name = "fuzz_process_deep"
+path = "fuzz_targets/fuzz_process_deep.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "fuzz_process_rand"
+path = "fuzz_targets/fuzz_process_rand.rs"
+test = false
+doc = false

@@ -1,0 +1,8 @@
+project: savantenvs/cargo-deb
+target: fuzz-process-rand-buggy-mhh-run-2
+testsuite:
+  - https://$MAYHEM_DOMAIN/$MAYHEM_PROJECT/$MAYHEM_TARGET/testsuite.tar
+cmds:
+  - cmd: /mayhem/fuzz_process_rand
+    libfuzzer: true
+# origin: https://app.mayhem.security/mayhemheroes/cargo-deb/fuzz-process-rand/2

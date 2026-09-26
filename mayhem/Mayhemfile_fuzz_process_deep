@@ -1,0 +1,8 @@
+project: savantenvs/cargo-deb
+target: fuzz-process-deep-buggy-mhh-run-1
+testsuite:
+  - https://$MAYHEM_DOMAIN/$MAYHEM_PROJECT/$MAYHEM_TARGET/testsuite.tar
+cmds:
+  - cmd: /mayhem/fuzz_process_deep
+    libfuzzer: true
+# origin: https://app.mayhem.security/mayhemheroes/cargo-deb/fuzz-process-deep/1
